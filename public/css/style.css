@@ -1,0 +1,10 @@
+.container {
+  margin-top: 50px;
+}
+#main .input-large {
+  font-size: 18px;
+  padding:9px;
+}
+#main .add-on {
+  padding: 9px;
+}

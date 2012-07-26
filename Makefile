@@ -1,0 +1,2 @@
+default: 
+	coffee app.coffee

@@ -1,0 +1,25 @@
+extends layout
+
+block head
+  script(src='/js/app.js')
+
+block content
+  .container
+    form#main.hero-unit.form-inline(action='/register',
+      method='get',name='form')
+      h1 N37 Url Shortener
+      br
+      div.input-prepend.input-append
+        .add-on
+          i.icon-tag
+        input#url-input.input-large.span6(
+          name='url',
+          type='text',
+          placeholder="Enter the url"
+          )
+        input.btn.btn-large(type='submit', value="Shorten It!")
+        p
+          example: http://google.com
+      #result
+
+    script(type='template')

@@ -1,0 +1,22 @@
+{
+  "author": "Jimmy Chao <daizenga@gmail.com> (neethack.com)",
+  "name": "url_shortener",
+  "version": "0.0.0",
+  "repository": {
+    "url": ""
+  },
+  "main": "app.coffee",
+  "engines": {
+    "node": "~0.6.3"
+  },
+  "dependencies": {
+    "express": "~3.0.0rc1",
+    "redis": "~0.7.2",
+    "jade": "~0.26.3",
+    "crypto": "0.0.3",
+    "url": "~0.7.9",
+    "log": "~1.3.0",
+    "coffee-script": "~1.3.3"
+  },
+  "devDependencies": {}
+}
