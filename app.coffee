@@ -4,8 +4,19 @@ Log = require('log')
 log = new Log('debug')
 Url = require 'url'
 
-redis = require 'redis'
-client = redis.createClient()
+if process.env.REDISTOGO_URL
+  rtg = Url.parse(process.env.REDISTOGO_URL)
+  client = require('redis').createClient(rtg.port, rtg.hostname)
+  client.auth(rtg.auth.split(":")[1])
+else
+  client = require('redis').createClient()
+
+if process.env.NODE_ENV is 'production'
+  port = 80
+  host = "http://n37.co"
+else
+  port = 3000
+  host = "http://localhost:#{port}"
 
 app = express.createServer()
 
@@ -35,6 +46,7 @@ app.get '/register', (req, res, next)->
 app.get '/create', (req, res)->
   res.render 'create'
     code: req.session.code
+    host: host
 
 app.get /^\/([a-zA-Z0-9]{4,6})$/, (req, res, next)->
   code = req.params[0]
@@ -44,7 +56,7 @@ app.get /^\/([a-zA-Z0-9]{4,6})$/, (req, res, next)->
     client.hincrby 'hits', reply, 1
     res.redirect reply
 
-app.listen '3000'
+app.listen port
 
 hashUrl = (url)->
   symbals = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
