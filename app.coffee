@@ -24,7 +24,7 @@ app.set 'view engine', 'jade'
 
 app.use express.bodyParser()
 app.use express.cookieParser()
-app.use express.session secret: "asdajchklshjlawu4hvjbl"
+app.use express.cookieSession secret: "alsaksjdl3i29jllfjaf"
 app.use express.static('public/')
 
 app.get '/', (req, res)->
@@ -56,6 +56,7 @@ app.get /^\/([a-zA-Z0-9]{4,6})$/, (req, res, next)->
     client.hincrby 'hits', reply, 1
     res.redirect reply
 
+log.info "start #{process.env.NODE_ENV} server with #{port}"
 app.listen port
 
 hashUrl = (url)->
