@@ -12,7 +12,7 @@ else
   client = require('redis').createClient()
 
 if process.env.NODE_ENV is 'production'
-  port = 80
+  port = process.env.PORT || 80
   host = "http://n37.co"
 else
   port = 3000
