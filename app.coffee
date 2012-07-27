@@ -58,11 +58,11 @@ app.get '/create', (req, res)->
 
 app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
   code = req.params[0]
-  client.get "url:#{code}", (err, url)->
-    return next(err) if err or not url
+  client.get "url:#{code}", (err, reply)->
+    return next(err) if err or not reply
     client.expire "url:#{code}", EXPIRE_TIME
-    log.info "redirect user to #{url}"
-    client.hincrby 'hits', url, 1
+    log.info "redirect user to #{reply}"
+    client.hincrby 'hits', reply, 1
     res.redirect reply
 
 app.use (err, req, res, next)->
