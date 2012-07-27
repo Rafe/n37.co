@@ -70,8 +70,8 @@ app.use (err, req, res, next)->
   else
     next(err)
 
-# log.info "start #{process.env.NODE_ENV} server with #{port}"
-# app.listen port
+log.info "start #{process.env.NODE_ENV} server with #{port}"
+app.listen port
 
 generate_code = (url, algorithms, callback)->
   alg = algorithms.shift()
