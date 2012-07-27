@@ -70,8 +70,8 @@ app.use (err, req, res, next)->
   else
     next(err)
 
-log.info "start #{process.env.NODE_ENV} server with #{port}"
-app.listen port
+# log.info "start #{process.env.NODE_ENV} server with #{port}"
+# app.listen port
 
 generate_code = (url, algorithms, callback)->
   alg = algorithms.shift()
@@ -87,8 +87,9 @@ generate_code = (url, algorithms, callback)->
           callback(null, code)
       else generate_code(url, algorithms, callback)
 
-hashUrl = (url, algorithm = 'md5')->
+module.exports = hashUrl = (url, algorithm = 'md5')->
   symbols = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
+  length = symbols.length
   digits = 5
   code = ""
 
@@ -96,11 +97,11 @@ hashUrl = (url, algorithm = 'md5')->
     .update(url)
     .digest('hex')
 
-  hash_number = parseInt(hash, 16) % Math.pow(symbols.length, digits + 1)
+  hash_number = parseInt(hash, 16) % Math.pow(length, digits + 1)
 
   while hash_number >= length
     n = hash_number % length
-    code += symbals[n]
+    code += symbols[n]
     hash_number = parseInt(hash_number / length)
 
   code
