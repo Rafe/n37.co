@@ -15,7 +15,7 @@ else
 
 if process.env.NODE_ENV is 'production'
   port = process.env.PORT || 80
-  host = "http://n37.co"
+  host = process.env.HOST || "http://n37.co"
 else
   port = 3000
   host = "http://localhost:#{port}"
@@ -45,7 +45,7 @@ app.get '/register', (req, res, next)->
 
   generate_code url, algorithms, (err, code)->
     return next(err) if err
-
+    client.expire "url:#{code}", EXPIRE_TIME
     log.info "generate code #{code} for #{req.connection.remoteAddress}"
     req.session.code = code
     req.session.url = url
@@ -58,10 +58,11 @@ app.get '/create', (req, res)->
 
 app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
   code = req.params[0]
-  client.get "url:#{code}", (err, reply)->
-    return next(err) if err or not reply
-    log.info "redirect user to #{reply}"
-    client.hincrby 'hits', reply, 1
+  client.get "url:#{code}", (err, url)->
+    return next(err) if err or not url
+    client.expire "url:#{code}", EXPIRE_TIME
+    log.info "redirect user to #{url}"
+    client.hincrby 'hits', url, 1
     res.redirect reply
 
 app.use (err, req, res, next)->
@@ -83,7 +84,6 @@ generate_code = (url, algorithms, callback)->
     client.get "url:#{code}", (err, reply)->
       if not reply or reply == url
         client.set "url:#{code}", url, (err, reply)->
-          client.expire "url:#{code}", EXPIRE_TIME
           callback(null, code)
       else generate_code(url, algorithms, callback)
 
