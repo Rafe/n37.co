@@ -1,6 +1,6 @@
 express = require 'express'
 crypto = require 'crypto'
-Log = require('log')
+Log = require 'log'
 log = new Log('debug')
 Url = require 'url'
 
@@ -31,14 +31,19 @@ app.get '/', (req, res)->
   res.render 'index'
 
 app.get '/register', (req, res, next)->
+  algorithms = ['md5', 'sha1', 'sha256', 'sha512']
   url = normalizeUrl req.query.url
 
-  return next() unless url
+  if not url
+    return next(new Error('No url'))
 
-  code = hashUrl(url)
+  if url.indexOf(host) isnt -1
+    return next(new Error('Url is already shortened'))
 
-  client.set "url:#{code}", url, (err, reply)->
-    log.info "generate code #{code}"
+  generate_code url, algorithms, (err, code)->
+    return next(err) if err
+
+    log.info "generate code #{code} for #{req.connection.remoteAddress}"
     req.session.code = code
     req.session.url = url
     res.redirect '/create'
@@ -48,7 +53,7 @@ app.get '/create', (req, res)->
     code: req.session.code
     host: host
 
-app.get /^\/([a-zA-Z0-9]{4,6})$/, (req, res, next)->
+app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
   code = req.params[0]
   client.get "url:#{code}", (err, reply)->
     return next(err) if err
@@ -59,13 +64,27 @@ app.get /^\/([a-zA-Z0-9]{4,6})$/, (req, res, next)->
 log.info "start #{process.env.NODE_ENV} server with #{port}"
 app.listen port
 
-hashUrl = (url)->
+generate_code = (url, algorithms, callback)->
+  alg = algorithms.shift()
+  if not alg
+    callback(new Error('all code is registered'))
+  else
+    code = hashUrl(url, alg)
+
+    client.get "url:#{code}", (err, reply)->
+      if not reply or reply == url
+        client.set "url:#{code}", url, (err, reply)->
+          client.expire "url:#{code}", 60 * 60 * 24 * 30
+          callback(null, code)
+      else generate_code(url, algorithms, callback)
+
+hashUrl = (url, algorithm = 'md5')->
   symbals = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
   length = symbals.length
   digits = 5
   code = ""
 
-  hash = crypto.createHash('md5')
+  hash = crypto.createHash(algorithm)
     .update(url)
     .digest('hex')
 
