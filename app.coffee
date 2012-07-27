@@ -4,6 +4,8 @@ Log = require 'log'
 log = new Log('debug')
 Url = require 'url'
 
+EXPIRE_TIME = 60 * 60 * 24 * 30 # 1 month
+
 if process.env.REDISTOGO_URL
   rtg = Url.parse(process.env.REDISTOGO_URL)
   client = require('redis').createClient(rtg.port, rtg.hostname)
@@ -24,7 +26,8 @@ app.set 'view engine', 'jade'
 
 app.use express.bodyParser()
 app.use express.cookieParser()
-app.use express.cookieSession secret: "alsaksjdl3i29jllfjaf"
+app.use express.cookieSession
+  secret: process.env.SECRET || "lASDWsjldcjxl8o3jfhsjdfksdjfhksasd@asd293"
 app.use express.static('public/')
 
 app.get '/', (req, res)->
@@ -80,13 +83,12 @@ generate_code = (url, algorithms, callback)->
     client.get "url:#{code}", (err, reply)->
       if not reply or reply == url
         client.set "url:#{code}", url, (err, reply)->
-          client.expire "url:#{code}", 60 * 60 * 24 * 30
+          client.expire "url:#{code}", EXPIRE_TIME
           callback(null, code)
       else generate_code(url, algorithms, callback)
 
 hashUrl = (url, algorithm = 'md5')->
-  symbals = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
-  length = symbals.length
+  symbols = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
   digits = 5
   code = ""
 
@@ -94,7 +96,7 @@ hashUrl = (url, algorithm = 'md5')->
     .update(url)
     .digest('hex')
 
-  hash_number = parseInt(hash, 16) % Math.pow(length, digits + 1)
+  hash_number = parseInt(hash, 16) % Math.pow(symbols.length, digits + 1)
 
   while hash_number >= length
     n = hash_number % length
