@@ -56,10 +56,16 @@ app.get '/create', (req, res)->
 app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
   code = req.params[0]
   client.get "url:#{code}", (err, reply)->
-    return next(err) if err
+    return next(err) if err or not reply
     log.info "redirect user to #{reply}"
     client.hincrby 'hits', reply, 1
     res.redirect reply
+
+app.use (err, req, res, next)->
+  if process.env.NODE_ENV is 'production'
+    res.render '404'
+  else
+    next(err)
 
 log.info "start #{process.env.NODE_ENV} server with #{port}"
 app.listen port
