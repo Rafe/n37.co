@@ -4,6 +4,7 @@ Log = require 'log'
 log = new Log('debug')
 Url = require 'url'
 
+TRACKER_KEY = process.env.TRACKER_KEY
 EXPIRE_TIME = 60 * 60 * 24 * 30 # 1 month
 
 if process.env.REDISTOGO_URL
@@ -30,6 +31,11 @@ app.use express.cookieSession
   secret: process.env.SECRET || "lASDWsjldcjxl8o3jfhsjdfksdjfhksasd@asd293"
 app.use express.static('public/')
 
+app.use (req, res, next)->
+  res.locals.host = host
+  res.locals.TRACKER_KEY = TRACKER_KEY
+  next()
+
 app.get '/', (req, res)->
   res.render 'index'
 
@@ -43,27 +49,26 @@ app.get '/register', (req, res, next)->
   if url.indexOf(host) isnt -1
     return next(new Error('Url is already shortened'))
 
-  generate_code url, algorithms, (err, code)->
+  generateCode url, algorithms, (err, code)->
     return next(err) if err
     client.expire "url:#{code}", EXPIRE_TIME
     log.info "generate code #{code} for #{req.connection.remoteAddress}"
     req.session.code = code
-    req.session.url = url
     res.redirect '/create'
 
 app.get '/create', (req, res)->
   res.render 'create'
     code: req.session.code
-    host: host
 
 app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
   code = req.params[0]
   client.get "url:#{code}", (err, reply)->
     return next(err) if err or not reply
     client.expire "url:#{code}", EXPIRE_TIME
-    log.info "redirect user to #{reply}"
     client.hincrby 'hits', reply, 1
+    log.info "redirect user to #{reply}"
     res.redirect reply
+
 
 app.use (err, req, res, next)->
   if process.env.NODE_ENV is 'production'
@@ -74,20 +79,20 @@ app.use (err, req, res, next)->
 log.info "start #{process.env.NODE_ENV} server with #{port}"
 app.listen port
 
-generate_code = (url, algorithms, callback)->
+generateCode = (url, algorithms, callback)->
   alg = algorithms.shift()
   if not alg
-    callback(new Error('all code is registered'))
-  else
-    code = hashUrl(url, alg)
+    return callback(new Error('all code is registered'))
 
-    client.get "url:#{code}", (err, reply)->
-      if not reply or reply == url
-        client.set "url:#{code}", url, (err, reply)->
-          callback(null, code)
-      else generate_code(url, algorithms, callback)
+  code = hashUrl(url, alg)
 
-module.exports = hashUrl = (url, algorithm = 'md5')->
+  client.get "url:#{code}", (err, reply)->
+    if not reply or reply == url
+      client.set "url:#{code}", url, (err, reply)->
+        callback(null, code)
+    else generateCode(url, algorithms, callback)
+
+exports.hashUrl = hashUrl = (url, algorithm = 'md5')->
   symbols = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
   length = symbols.length
   digits = 5

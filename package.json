@@ -1,9 +1,10 @@
 {
   "author": "Jimmy Chao <daizenga@gmail.com> (neethack.com)",
   "name": "url_shortener",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "repository": {
-    "url": ""
+    "type": "git",
+    "url": "git://github.com/Rafe/n37.co.git"
   },
   "main": "app.coffee",
   "engines": {
