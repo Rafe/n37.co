@@ -3,6 +3,5 @@ extends layout
 block content
   .hero-unit
     h1 Your url is shortened
-
     h2
-      a(href="#{host}/#{code}") #{host}/#{code}
+      a#code(href="#{host}/#{code}") #{host}/#{code}
