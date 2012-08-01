@@ -50,8 +50,8 @@ app.get '/register', (req, res, next)->
   if url.indexOf(host) isnt -1
     return next(new Error('Url is already shortened'))
 
-  #http://mathiasbynens.be/demo/url-regex @stephenhay
-  unless /^(https?|ftp):\/\/[^\s\/$.?#].[^\s]*$/gi.test(url)
+  #http://mathiasbynens.be/demo/url-regex from @stephenhay
+  unless /^(https?):\/\/[^\s\/$.?#].[^\s]*$/gi.test(url)
     return next(new Error('This is not a valid url'))
 
   generateCode url, algorithms, digits, (err, code)->
