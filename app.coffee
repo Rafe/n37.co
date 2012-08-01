@@ -40,7 +40,8 @@ app.get '/', (req, res)->
   res.render 'index'
 
 app.get '/register', (req, res, next)->
-  algorithms = ['md5', 'sha1', 'sha256', 'sha512']
+  algorithms = getAlgorithms()
+  digits = 5
   url = normalizeUrl req.query.url
 
   if not url
@@ -49,7 +50,11 @@ app.get '/register', (req, res, next)->
   if url.indexOf(host) isnt -1
     return next(new Error('Url is already shortened'))
 
-  generateCode url, algorithms, (err, code)->
+  #http://mathiasbynens.be/demo/url-regex @stephenhay
+  unless /^(https?|ftp):\/\/[^\s\/$.?#].[^\s]*$/gi.test(url)
+    return next(new Error('This is not a valid url'))
+
+  generateCode url, algorithms, digits, (err, code)->
     return next(err) if err
     client.expire "url:#{code}", EXPIRE_TIME
     log.info "generate code #{code} for #{req.connection.remoteAddress}"
@@ -69,33 +74,35 @@ app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
     log.info "redirect user to #{reply}"
     res.redirect reply
 
-
 app.use (err, req, res, next)->
   if process.env.NODE_ENV is 'production'
-    res.render '404'
+    res.render '404', { error: err }
   else
     next(err)
 
 log.info "start #{process.env.NODE_ENV} server with #{port}"
 app.listen port
 
-generateCode = (url, algorithms, callback)->
-  alg = algorithms.shift()
-  if not alg
-    return callback(new Error('all code is registered'))
+getAlgorithms = -> ['md5', 'sha1', 'sha256', 'sha512']
 
-  code = hashUrl(url, alg)
+generateCode = (url, algorithms, digits, callback)->
+  algorithm = algorithms.shift()
+  #increase code digits if all codes are registered
+  if not algorithm
+    algorithms = getAlgorithms()
+    digits += 1
+
+  code = hashUrl(url, digits, algorithm)
 
   client.get "url:#{code}", (err, reply)->
     if not reply or reply == url
       client.set "url:#{code}", url, (err, reply)->
         callback(null, code)
-    else generateCode(url, algorithms, callback)
+    else generateCode(url, algorithms, digits, callback)
 
-exports.hashUrl = hashUrl = (url, algorithm = 'md5')->
+exports.hashUrl = hashUrl = (url, digits = 5, algorithm = 'md5')->
   symbols = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
   length = symbols.length
-  digits = 5
   code = ""
 
   hash = crypto.createHash(algorithm)
