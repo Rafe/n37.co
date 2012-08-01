@@ -75,10 +75,10 @@ app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
     res.redirect reply
 
 app.use (err, req, res, next)->
-  if process.env.NODE_ENV is 'production'
+  # if process.env.NODE_ENV is 'production'
     res.render '404', { error: err }
-  else
-    next(err)
+  # else
+    # next(err)
 
 log.info "start #{process.env.NODE_ENV} server with #{port}"
 app.listen port
