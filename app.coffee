@@ -86,11 +86,12 @@ app.listen port
 getAlgorithms = -> ['md5', 'sha1', 'sha256', 'sha512']
 
 generateCode = (url, algorithms, digits, callback)->
-  algorithm = algorithms.shift()
   #increase code digits if all codes are registered
-  if not algorithm
+  if algorithms.length is 0
     algorithms = getAlgorithms()
     digits += 1
+
+  algorithm = algorithms.shift()
 
   code = hashUrl(url, digits, algorithm)
 
