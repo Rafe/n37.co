@@ -5,7 +5,7 @@ log = new Log('debug')
 Url = require 'url'
 
 TRACKER_KEY = process.env.TRACKER_KEY
-EXPIRE_TIME = 60 * 60 * 24 * 30 # 1 month
+EXPIRE_TIME = 60 * 60 * 24 * 30 * 12 # 1 year
 
 if process.env.REDISTOGO_URL
   rtg = Url.parse(process.env.REDISTOGO_URL)
