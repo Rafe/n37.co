@@ -8,9 +8,9 @@ TRACKER_KEY = process.env.TRACKER_KEY
 EXPIRE_TIME = 60 * 60 * 24 * 30 * 12 # 1 year
 
 if process.env.REDISTOGO_URL
-  rtg = Url.parse(process.env.REDISTOGO_URL)
-  client = require('redis').createClient(rtg.port, rtg.hostname)
-  client.auth(rtg.auth.split(":")[1])
+  redisToGo = Url.parse(process.env.REDISTOGO_URL)
+  client = require('redis').createClient(redisToGo.port, redisToGo.hostname)
+  client.auth(redisToGo.auth.split(":")[1])
 else
   client = require('redis').createClient()
 
@@ -31,10 +31,8 @@ app.use express.cookieSession
   secret: process.env.SECRET || "lASDWsjldcjxl8o3jfhsjdfksdjfhksasd@asd293"
 app.use express.static('public/')
 
-app.use (req, res, next)->
-  res.locals.host = host
-  res.locals.TRACKER_KEY = TRACKER_KEY
-  next()
+app.locals.host = host
+app.locals.TRACKER_KEY = TRACKER_KEY
 
 app.get '/', (req, res)->
   res.render 'index'
@@ -75,10 +73,10 @@ app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
     res.redirect reply
 
 app.use (err, req, res, next)->
-  # if process.env.NODE_ENV is 'production'
+  if process.env.NODE_ENV is 'production'
     res.render '404', { error: err }
-  # else
-    # next(err)
+  else
+    next(err)
 
 log.info "start #{process.env.NODE_ENV} server with #{port}"
 app.listen port
