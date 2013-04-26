@@ -30,7 +30,7 @@ For deploy to heroku, first you need to have the [heroku cli](https://devcenter.
 
 Then create the app with cedar stack:
 
-	heroku apps:create [NAME] -s cedar
+	heroku apps:create [NAME]
 	
 Enable the [redistogo addon](https://addons.heroku.com/redistogo) with nano instance on heroku
 
