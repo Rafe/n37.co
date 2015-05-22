@@ -60,7 +60,7 @@ app.get '/register', (req, res, next)->
     res.redirect '/create'
 
 app.get '/create', (req, res)->
-  res.render 'create'
+  res.render 'create',
     code: req.session.code
 
 app.get /^\/([a-zA-Z0-9]{1,5})$/, (req, res, next)->
