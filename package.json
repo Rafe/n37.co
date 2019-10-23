@@ -11,7 +11,7 @@
     "node": "0.12.x"
   },
   "dependencies": {
-    "express": "3.0.x",
+    "express": "4.17.x",
     "redis": "~0.7.2",
     "jade": "~0.26.3",
     "crypto": "0.0.3",
